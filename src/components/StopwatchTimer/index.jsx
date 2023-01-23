@@ -4,6 +4,7 @@ import { Container, Row, Col, ButtonGroup, Button, Card } from 'react-bootstrap'
 
 const oneOrTwoNum = (num) => num > 9 ? num : `0${num}`
 const pluralSingular = (num) => num > 1 ? "s" : ""
+const ONE_SECOND_TO_MILLISECOND = 1000
 
 export default function StopwatchTimer() {
 	const [seconds, setSeconds] = useState(0);
@@ -17,10 +18,31 @@ export default function StopwatchTimer() {
 	const [velocity, setVelocity] = useState(0);
 	const [velocityName, setVelocityName] = useState("");
 
+	const timerInitialState = { seconds: 0, minutes: 0, hours: 0 };
+ 	const [timer, setTimer] = useState(timerInitialState);
+	 const [intervalState, setIntervalState] = useState(null);
 
-	const handleStart =() => {			
 
-		const intervalSeconds = setInterval(() => {
+	const handleStart =() => {		
+		
+		const interval = setInterval(
+			() => {
+			  setTimer((t) => {
+				if (t.seconds === 59) {
+				  return { ...t, seconds: 0, minutes: t.minutes + 1 };
+				}
+				if (t.minutes === 59) {
+				  return { ...t, minutes: 0, hours: t.hours + 1 };
+				}
+				return { ...t, seconds: t.seconds + 1 };
+			  });
+			},
+			velocity ? ONE_SECOND_TO_MILLISECOND / velocity : ONE_SECOND_TO_MILLISECOND
+			);
+		setIntervalState(interval);
+			  	
+
+		/* const intervalSeconds = setInterval(() => {
 			setSeconds((s) => {
 				if (s === 59) {
 					return 0
@@ -29,7 +51,7 @@ export default function StopwatchTimer() {
 			})
 		}, velocity ? 1000/velocity : 1000);
 
-		const intervalMinutes = setInterval(() => {
+		/* const intervalMinutes = setInterval(() => {
 			setMinutes((m) => {
 				if (m === 59) {
 					return 0
@@ -49,11 +71,17 @@ export default function StopwatchTimer() {
 
 		setIntervalSeconds(intervalSeconds);
 		setIntervalMinutes(intervalMinutes);
-		setIntervaHours(intervalHours);
+		setIntervaHours(intervalHours); */
 	}
 
 	const handleStop = () =>{
-		if (stateIntervalSeconds && stateIntervalMinutes && stateIntervalHours) {
+		if(!intervalState){
+			console.log('No hay intervalo activo');
+			return
+		  }
+		  clearInterval(intervalState);
+
+		/* if (stateIntervalSeconds && stateIntervalMinutes && stateIntervalHours) {
 			clearInterval(stateIntervalSeconds);
 			clearInterval(stateIntervalMinutes);
 			clearInterval(stateIntervalHours);
@@ -61,20 +89,26 @@ export default function StopwatchTimer() {
 
 		setIntervalSeconds(null);
 		setIntervalMinutes(null);
-		setIntervaHours(null);
+		setIntervaHours(null); */
 	};
 
 	const handleReset = () => {
 		handleStop();
+    	setTimer(timerInitialState);
+
+		/* handleStop();
 		setSeconds(0);
 		setMinutes(0);
-		setHours(0);
+		setHours(0); */
 	};
 
 	const handleVelocity = (vel, velText) => {
+		if(intervalState){
+			handleStop()
+		}		
+
 		setVelocity(vel);
-		setVelocityName(velText);
-		handleStop();
+		setVelocityName(velText);		
 	};
 
 	return (
